@@ -11,8 +11,6 @@ class GamesController < ApplicationController
   def create
     @game = Game.create!(game_params)
     @game.users << current_user
-    @game.player_count = 1
-    @game.save
     json_response(@game, :created)
   end
 
@@ -37,7 +35,7 @@ class GamesController < ApplicationController
 
   def game_params
     # whitelist params
-    params.permit(:title)
+    params.permit(:title).merge(:player_count => 1, :started => false, :finished => false, created_by: current_user.id)
   end
 
   def set_game
