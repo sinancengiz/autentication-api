@@ -5,5 +5,5 @@ class Game < ApplicationRecord
 
   # validation
   validates_presence_of :title
-  validates_presence_of :created_by
+
 end

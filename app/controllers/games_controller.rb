@@ -37,7 +37,7 @@ class GamesController < ApplicationController
 
   def game_params
     # whitelist params
-    params.permit(:title, :created_by, :player_count)
+    params.permit(:title)
   end
 
   def set_game
