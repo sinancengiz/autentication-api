@@ -1,5 +1,5 @@
 class GamesController < ApplicationController
-    before_action :set_game, only: [:show, :update, :destroy]
+    before_action :set_game, only: [:join_to_game, :show, :update, :destroy]
 
   # GET /games
   def index
@@ -12,6 +12,12 @@ class GamesController < ApplicationController
     @game = Game.create!(game_params)
     @game.users << current_user
     json_response(@game, :created)
+  end
+
+  # POST /games/:id
+  def join_to_game
+    @game.users << current_user
+    head :no_content
   end
 
   # GET /games/:id
