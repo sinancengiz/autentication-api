@@ -3,7 +3,7 @@ class User < ApplicationRecord
   has_secure_password
 
   # Model associations
-  has_many :games, foreign_key: :created_by
+  has_and_belongs_to_many :games
   # Validations
   validates_presence_of :user_name, :email, :password_digest
 end

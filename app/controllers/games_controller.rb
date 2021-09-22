@@ -10,6 +10,9 @@ class GamesController < ApplicationController
   # POST /games
   def create
     @game = Game.create!(game_params)
+    @game.users << current_user
+    @game.player_count = 1
+    @game.save
     json_response(@game, :created)
   end
 
