@@ -12,6 +12,9 @@
 
 ActiveRecord::Schema.define(version: 2021_09_22_215732) do
 
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "games", force: :cascade do |t|
     t.string "title"
     t.integer "created_by"
@@ -23,8 +26,8 @@ ActiveRecord::Schema.define(version: 2021_09_22_215732) do
   end
 
   create_table "games_users", id: false, force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "game_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "game_id", null: false
   end
 
   create_table "users", force: :cascade do |t|
