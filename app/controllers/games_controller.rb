@@ -1,5 +1,6 @@
 class GamesController < ApplicationController
-    before_action :set_game, only: [:join_to_game, :show, :update, :destroy]
+    before_action :set_game, only: [:join_to_game, :get_game_users, :quit_from_game, :show, :update, :destroy]
+    before_action :set_user, only: [:join_to_game, :get_game_users, :quit_from_game, :create, :show, :update, :destroy]
 
   # GET /games
   def index
@@ -9,15 +10,37 @@ class GamesController < ApplicationController
 
   # POST /games
   def create
-    @game = Game.create!(game_params)
-    @game.users << current_user
-    json_response(@game, :created)
+    if current_user.current_game.nil?
+      @game = Game.create!(game_params)
+      @game.users << current_user
+      @user.current_game = @game.id
+      @user.save
+      json_response(@game, :created)
+    end
   end
 
   # POST /games/:id
   def join_to_game
-    @game.users << current_user
-    head :no_content
+    if current_user.current_game.nil?
+      @game.users << current_user
+      @user.current_game = @game.id
+      @user.save
+      head :no_content
+    end
+  end
+
+  # POST /games/:id/users/:user_id
+  def quit_from_game
+    if !@user.current_game.nil?
+      @user.current_game = nil
+      @user.save
+      @game.users.delete(@user)
+    end
+  end
+
+  # GET /games/:id/users
+  def get_game_users
+    json_response(@game.users, :created)
   end
 
   # GET /games/:id
@@ -33,7 +56,8 @@ class GamesController < ApplicationController
 
   # DELETE /games/:id
   def destroy
-    @game.destroy
+    return unless @game.created_by == @user.id
+    @game.destroy_game
     head :no_content
   end
 
@@ -46,5 +70,9 @@ class GamesController < ApplicationController
 
   def set_game
     @game = Game.find(params[:id])
+  end
+
+  def set_user
+    @user = User.find(current_user.id)
   end
 end
