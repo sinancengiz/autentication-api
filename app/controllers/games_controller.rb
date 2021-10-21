@@ -11,11 +11,14 @@ class GamesController < ApplicationController
   # POST /games
   def create
     if current_user.current_game.nil?
-      @game = Game.create!(game_params)
-      @game.users << current_user
-      @user.current_game = @game.id
-      @user.save
-      json_response(@game, :created)
+      if @game = Game.create!(game_params)
+        @game.users << current_user
+        @user.current_game = @game.id
+        @user.save
+        json_response(@game, :created)
+      else
+        json_response(@game.errors)
+      end
     end
   end
 
