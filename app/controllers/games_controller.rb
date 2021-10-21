@@ -32,6 +32,9 @@ class GamesController < ApplicationController
   # POST /games/:id/users/:user_id
   def quit_from_game
     if !@user.current_game.nil?
+      if @user.current_game == @game.id
+        @game.destroy_game
+      end
       @user.current_game = nil
       @user.save
       @game.users.delete(@user)
