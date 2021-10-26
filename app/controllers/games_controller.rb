@@ -81,14 +81,25 @@ class GamesController < ApplicationController
 
   # POST /games/:id/start_game
   def start_game
-    byebug
     if @user.current_game && @game.created_by == @user.id
       @game = Game.find(@user.current_game)
       @game.started = true
       @game.save
-      json_response(@game, :created)
+      @castles = @game.initial_castles.shuffle
+      @castles.each do |castle|
+        Castle.create(castle)
+        @game.castles << Castle.last
+        @game.users.each do |user|
+          if user.capital == castle[:name]
+            Castle.last.users << user
+          end
+        end        
+      end
+
+      @start_game_response = {game: @game, castles: @game.castles}
+      json_response(@start_game_response, :created)
     else
-      json_response({message: "Only craetor can start the game"}, :created)
+      json_response({message: "Only creator can start the game"}, :created)
     end
   end
 
