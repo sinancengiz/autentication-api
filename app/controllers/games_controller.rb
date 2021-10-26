@@ -1,10 +1,10 @@
 class GamesController < ApplicationController
-    before_action :set_game, only: [:join_to_game, :get_game_users, :quit_from_game, :show, :update, :destroy]
-    before_action :set_user, only: [:join_to_game, :get_game_users, :quit_from_game, :create, :show, :update, :destroy]
+    before_action :set_game, only: [:join_to_game, :get_game_users, :quit_from_game, :show, :update, :destroy, :start_game]
+    before_action :set_user, only: [:join_to_game, :get_game_users, :quit_from_game, :create, :show, :update, :destroy, :start_game]
 
   # GET /games
   def index
-    @games = Game.all
+    @games = Game.where("player_count < ?", 5)
     json_response(@games)
   end
 
@@ -16,34 +16,9 @@ class GamesController < ApplicationController
       @user.current_game = @game.id
       @user.save
       json_response(@game, :created)
+    else
+      json_response({message: "You are already in a game"}, :created)
     end
-  end
-
-  # POST /games/:id
-  def join_to_game
-    if current_user.current_game.nil?
-      @game.users << current_user
-      @user.current_game = @game.id
-      @user.save
-      head :no_content
-    end
-  end
-
-  # POST /games/:id/users/:user_id
-  def quit_from_game
-    if !@user.current_game.nil?
-      if @user.current_game == @game.id
-        @game.destroy_game
-      end
-      @user.current_game = nil
-      @user.save
-      @game.users.delete(@user)
-    end
-  end
-
-  # GET /games/:id/users
-  def get_game_users
-    json_response(@game.users, :created)
   end
 
   # GET /games/:id
@@ -62,6 +37,59 @@ class GamesController < ApplicationController
     return unless @game.created_by == @user.id
     @game.destroy_game
     head :no_content
+  end
+
+  # POST /games/:id
+  def join_to_game
+    if current_user.current_game.nil?
+      if @game.player_count < 4
+        @game.users << current_user
+        @user.current_game = @game.id
+        @game.player_count += 1
+        @game.save
+        @user.save
+        head :no_content
+      else
+        json_response({message: "Game is full"}, :created)
+      end
+    else
+      json_response({message: "You are already in a game"}, :created)
+    end
+  end
+
+  # POST /games/:id/quit_game
+  def quit_from_game
+    if @game.created_by == @user.id
+      @game.destroy_game
+      json_response({message: "Game deleted"}, :created)
+    else
+      if !@user.current_game.nil? && @user.current_game == @game.id
+        @game.player_count -= 1
+        @game.save
+      end
+      @user.current_game = nil
+      @user.save
+      @game.users.delete(@user)
+      json_response({message: "You are not in a game"}, :created) 
+    end
+  end
+
+  # GET /games/:id/users
+  def get_game_users
+    json_response(@game.users, :created)
+  end
+
+  # POST /games/:id/start_game
+  def start_game
+    byebug
+    if @user.current_game && @game.created_by == @user.id
+      @game = Game.find(@user.current_game)
+      @game.started = true
+      @game.save
+      json_response(@game, :created)
+    else
+      json_response({message: "Only craetor can start the game"}, :created)
+    end
   end
 
   private
