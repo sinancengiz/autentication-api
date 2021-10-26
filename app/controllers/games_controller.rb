@@ -1,6 +1,6 @@
 class GamesController < ApplicationController
     before_action :set_game, only: [:join_to_game, :get_game_users, :quit_from_game, :show, :update, :destroy, :start_game]
-    before_action :set_user, only: [:join_to_game, :get_game_users, :quit_from_game, :create, :show, :update, :destroy, :start_game]
+    before_action :set_user, only: [:join_to_game, :get_game_users, :quit_from_game, :create, :show, :update, :destroy, :start_game, :select_capital, :select_color]
 
   # GET /games
   def index
@@ -90,8 +90,11 @@ class GamesController < ApplicationController
         Castle.create(castle)
         @game.castles << Castle.last
         @game.users.each do |user|
+          byebug
           if user.capital == castle[:name]
-            Castle.last.users << user
+            castle = Castle.last
+            castle.user_id = user.id
+            castle.save
           end
         end        
       end
@@ -100,6 +103,26 @@ class GamesController < ApplicationController
       json_response(@start_game_response, :created)
     else
       json_response({message: "Only creator can start the game"}, :created)
+    end
+  end
+
+  # PUT /games/:id/select_capital
+  def select_capital
+    @user.capital = params[:capital]
+    if @user.save
+      json_response(@user, :created)
+    else
+      json_response({message: "Capital selection failed"}, :created)
+    end
+  end
+
+  # PUT /games/:id/select_color
+  def select_color
+    @user.color = params[:color]
+    if @user.save
+      json_response(@user, :created)
+    else
+      json_response({message: "Color selection failed"}, :created)
     end
   end
 
