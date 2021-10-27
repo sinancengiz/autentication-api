@@ -23,14 +23,14 @@ class GamesController < ApplicationController
 
   # GET /games/:id
   def show
-    @game_response = {game: @game, castles: @game.castles}
+    @game_response = {game: @game, castles: @game.castles.order(:id)}
     json_response(@game_response, :created)
   end
 
   # PUT /games/:id
   def update
     @game.update(game_params)
-    @game_response = {game: @game, castles: @game.castles}
+    @game_response = {game: @game, castles: @game.castles.order(:id)}
     json_response(@game_response, :created)
   end
 
