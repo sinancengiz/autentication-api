@@ -7,6 +7,7 @@ Rails.application.routes.draw do
     post '/games/:id/start_game', to: 'games#start_game'
     post '/games/:id/select_capital', to: 'games#select_capital'
     post '/games/:id/select_color', to: 'games#select_color'
+    post '/games/:id/atack', to: 'games#atack'
 
     post 'signup', to: 'users#create'
     post 'auth/login', to: 'authentication#authenticate'

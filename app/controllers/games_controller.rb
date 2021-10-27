@@ -1,6 +1,6 @@
 class GamesController < ApplicationController
-    before_action :set_game, only: [:join_to_game, :get_game_users, :quit_from_game, :show, :update, :destroy, :start_game]
-    before_action :set_user, only: [:join_to_game, :get_game_users, :quit_from_game, :create, :show, :update, :destroy, :start_game, :select_capital, :select_color]
+    before_action :set_game, only: [:join_to_game, :get_game_users, :quit_from_game, :show, :update, :destroy, :start_game, :atack]
+    before_action :set_user, only: [:join_to_game, :get_game_users, :quit_from_game, :create, :show, :update, :destroy, :start_game, :select_capital, :select_color, :atack]
 
   # GET /games
   def index
@@ -23,13 +23,15 @@ class GamesController < ApplicationController
 
   # GET /games/:id
   def show
-    json_response(@game)
+    @game_response = {game: @game, castles: @game.castles}
+    json_response(@game_response, :created)
   end
 
   # PUT /games/:id
   def update
     @game.update(game_params)
-    head :no_content
+    @game_response = {game: @game, castles: @game.castles}
+    json_response(@game_response, :created)
   end
 
   # DELETE /games/:id
@@ -90,7 +92,6 @@ class GamesController < ApplicationController
         Castle.create(castle)
         @game.castles << Castle.last
         @game.users.each do |user|
-          byebug
           if user.capital == castle[:name]
             castle = Castle.last
             castle.user_id = user.id
@@ -126,6 +127,63 @@ class GamesController < ApplicationController
     end
   end
 
+  # PUT /games/:id/atack
+  def atack
+    atack_castle = Castle.find(params[:atack_castle])
+    defense_castle = Castle.find(params[:defense_castle])
+    atack_power = params[:army].to_i
+    defense_power = defense_castle.army
+    if atack_castle.user_id == @user.id && defense_castle.user_id != @user.id
+      if atack_castle.army >= params[:army].to_i
+        if defense_power >= atack_power
+          defense_castle.population -= atack_power
+          defense_castle.army -= atack_power
+          defense_castle.save
+          atack_castle.population -= atack_power
+          atack_castle.army -= atack_power
+          atack_castle.save
+          json_response({message: "Atack unsuccessful"}, :created)
+        else
+          if check_if_last_castle(defense_castle.user_id)
+            lost_user = User.find(defense_castle.user_id)
+            lost_user.color = nil
+            lost_user.capital = nil
+            lost_user.lost += 1
+            lost_user.save
+          end
+          if check_if_last_user(@game.id)
+            @game.destroy_game
+            @user.current_game = nil
+            @user.color = nil
+            @user.capital = nil
+            @user.won += 1
+            @user.save
+            json_response({message: "Game You Won"}, :created)
+          end
+          left_army = atack_power - defense_power
+          defense_castle.population = left_army
+          defense_castle.gold_worker = 0
+          defense_castle.wood_worker = 0
+          defense_castle.stone_worker = 0
+          defense_castle.farm_worker = 0
+          defense_castle.iron_worker = 0
+          defense_castle.idle_population = 0
+          defense_castle.army = left_army
+          defense_castle.user_id = atack_castle.user_id
+          defense_castle.save
+          atack_castle.population -= atack_power
+          atack_castle.army -= atack_power
+          atack_castle.save
+          json_response({message: "Atack successful"}, :created)
+        end
+      else
+        json_response({message: "Not enough army in the Castle to make this attack"}, :created)
+      end
+    else
+      json_response({message: "You can't atack this castle"}, :created)
+    end
+  end
+
   private
 
   def game_params
@@ -139,5 +197,20 @@ class GamesController < ApplicationController
 
   def set_user
     @user = User.find(current_user.id)
+  end
+
+  def check_if_last_castle(user_id)
+    if User.find(user_id).castles.length == 1
+      return true
+    else
+      return false
+    end  
+  end
+  def check_if_last_user(game_id)
+    if Game.find(game_id).users.length == 1
+      return true
+    else
+      return false
+    end  
   end
 end
