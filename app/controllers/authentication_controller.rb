@@ -10,12 +10,6 @@ class AuthenticationController < ApplicationController
   end
 
   def logout
-    if current_user.current_game
-      @game = Game.where(id: current_user.current_game).first
-      @game.player_count -= 1
-      @game.save
-      current_user.current_game = nil
-    end
     render json: { message: 'Successfully logged out' }, status: :ok
   end
 
