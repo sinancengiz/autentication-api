@@ -5,6 +5,7 @@ class UsersController < ApplicationController
   # return authenticated token upon signup
   def register
     begin
+      byebug
       user = User.create!({
         email: params[:email], 
         password: params[:password], 

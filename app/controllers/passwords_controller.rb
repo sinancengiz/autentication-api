@@ -31,5 +31,4 @@ class PasswordsController < ApplicationController
       render json: {error:  ['Link not valid or expired. Try generating a new link.']}
     end
   end
-
 end

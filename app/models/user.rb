@@ -2,11 +2,11 @@ class User < ApplicationRecord
     # encrypt password
   has_secure_password
 
-  belongs_to :organization
+  # belongs_to :organization
 
-  has_many :orders_users, dependent: :destroy
-  has_many :order_requests, dependent: :destroy
-  has_and_belongs_to_many :orders, dependent: :destroy
+  # has_many :orders_users, dependent: :destroy
+  # has_many :order_requests, dependent: :destroy
+  # has_and_belongs_to_many :orders, dependent: :destroy
 
   # Validations
   validates_presence_of :email, :password_digest
