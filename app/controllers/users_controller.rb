@@ -1,18 +1,15 @@
 # app/controllers/users_controller.rb
 class UsersController < ApplicationController
-  skip_before_action :authorize_request, only: [:create, :register, :create_customer]
+  skip_before_action :authorize_request, only: [:signup]
   # POST /register
   # return authenticated token upon signup
-  def register
+  def signup
     begin
-      byebug
       user = User.create!({
+        user_name: params[:user_name],
         email: params[:email], 
-        password: params[:password], 
+        password: params[:password],
         password_confirmation: params[:password_confirmation], 
-        role: params[:role],
-        first_name: params[:first_name],
-        last_name: params[:last_name]
       })
       user.save!
       auth_token = AuthenticateUser.new(user.email, user.password).call

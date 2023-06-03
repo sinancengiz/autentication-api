@@ -2,21 +2,11 @@ class User < ApplicationRecord
     # encrypt password
   has_secure_password
 
-  # belongs_to :organization
-
-  # has_many :orders_users, dependent: :destroy
-  # has_many :order_requests, dependent: :destroy
-  # has_and_belongs_to_many :orders, dependent: :destroy
-
   # Validations
-  validates_presence_of :email, :password_digest
+  validates_presence_of :email, :user_name, :password_digest
   validates_uniqueness_of :email
 
   before_save :downcase_fields
-
-  def admin?
-    self.role == "admin"
-  end
 
   def send_password_reset
     self.password_reset_token = generate_base64_token

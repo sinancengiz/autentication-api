@@ -7,7 +7,7 @@ class PasswordsController < ApplicationController
         render json: { messsage: "We have sent you a password reset email." }, state: :ok
         user.send_password_reset
       else
-        #this sends regardless of whether there's an email in database for security reasons
+        # this sends regardless of whether there's an email in database
         render json: {
           message: "If this user exists, we have sent you a password reset email."
         }, state: :ok
@@ -18,7 +18,7 @@ class PasswordsController < ApplicationController
   end
 
   def reset
-    user = User.find_by(password_reset_token: params[:token], email: params[:email])
+    user = User.find_by(password_reset_token: params[:reset_token], email: params[:email])
     if user.present? && user.password_token_valid?
       if user.reset_password(params[:password])
         render json: {
